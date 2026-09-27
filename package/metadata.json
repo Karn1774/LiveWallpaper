@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Karn"
+            }
+        ],
+        "Description": "Loop a local video as the desktop wallpaper",
+        "Icon": "preferences-desktop-wallpaper",
+        "Id": "com.custom.livewallpaper",
+        "License": "MIT",
+        "Name": "Performance Live Wallpaper",
+        "Version": "1.0.0"
+    },
+    "ServiceTypes": [
+        "Plasma/Wallpaper"
+    ],
+    "X-KDE-ParentApp": "org.kde.plasmashell",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

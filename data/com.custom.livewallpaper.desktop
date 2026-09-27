@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Performance Live Wallpaper
+Comment=Preview and set a video as the Plasma desktop wallpaper
+Exec=livewallpaper
+Icon=preferences-desktop-wallpaper
+Categories=AudioVideo;Video;
+Terminal=false

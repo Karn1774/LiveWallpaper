@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="General">
+        <entry name="VideoSource" type="String">
+            <label>Local video file path or file URL</label>
+            <default></default>
+        </entry>
+        <entry name="VideoPlaylist" type="StringList">
+            <label>Video wallpaper playlist</label>
+            <default></default>
+        </entry>
+        <entry name="CurrentIndex" type="Int">
+            <label>Current video in the playlist</label>
+            <default>0</default>
+        </entry>
+        <entry name="AutoAdvance" type="Bool">
+            <label>Advance to the next video automatically</label>
+            <default>false</default>
+        </entry>
+        <entry name="IntervalSeconds" type="Int">
+            <label>Time between videos in seconds</label>
+            <default>300</default>
+        </entry>
+        <entry name="Paused" type="Bool">
+            <label>Pause wallpaper playback and automatic changes</label>
+            <default>false</default>
+        </entry>
+    </group>
+</kcfg>
