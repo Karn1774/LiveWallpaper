@@ -5,6 +5,7 @@
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusMessage>
+#include <QDBusReply>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -16,6 +17,7 @@
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QPushButton>
+#include <QRandomGenerator>
 #include <QSettings>
 #include <QSlider>
 #include <QSpinBox>
@@ -38,6 +40,7 @@ public:
         , m_playButton(new QPushButton(tr("Pause preview")))
         , m_pauseWallpaperButton(new QPushButton)
         , m_nextButton(new QPushButton(tr("Next wallpaper")))
+        , m_orderCombo(new QComboBox)
         , m_applyButton(new QPushButton(tr("Apply to all screens")))
         , m_statusLabel(new QLabel(tr("Import videos to create a wallpaper playlist.")))
         , m_playlistWidget(new QListWidget)
@@ -95,6 +98,8 @@ public:
         m_intervalSpin->setSuffix(tr(""));
         m_intervalUnit->addItem(tr("minutes"), 60);
         m_intervalUnit->addItem(tr("hours"), 3600);
+        m_orderCombo->addItem(tr("In order"), 0);
+        m_orderCombo->addItem(tr("Random"), 1);
         auto *intervalRow = new QWidget(scheduleBox);
         auto *intervalLayout = new QHBoxLayout(intervalRow);
         intervalLayout->setContentsMargins(0, 0, 0, 0);
@@ -103,6 +108,7 @@ public:
         intervalLayout->addStretch(1);
         scheduleLayout->addRow(m_autoAdvanceCheck);
         scheduleLayout->addRow(tr("Change every:"), intervalRow);
+        scheduleLayout->addRow(tr("Playback order:"), m_orderCombo);
 
         auto *actionRow = new QHBoxLayout;
         actionRow->addWidget(m_playButton);
@@ -283,6 +289,7 @@ private:
         m_playlist = settings.value(QStringLiteral("playlist")).toStringList();
         m_currentIndex = settings.value(QStringLiteral("currentIndex"), 0).toInt();
         m_paused = settings.value(QStringLiteral("paused"), false).toBool();
+        m_orderCombo->setCurrentIndex(settings.value(QStringLiteral("playbackOrder"), 0).toInt());
         m_autoAdvanceCheck->setChecked(settings.value(QStringLiteral("autoAdvance"), false).toBool());
         m_intervalUnit->setCurrentIndex(settings.value(QStringLiteral("intervalUnit"), 0).toInt());
         m_intervalSpin->setMaximum(m_intervalUnit->currentIndex() == 1 ? 24 : 1440);
@@ -300,6 +307,7 @@ private:
         settings.setValue(QStringLiteral("playlist"), m_playlist);
         settings.setValue(QStringLiteral("currentIndex"), m_currentIndex);
         settings.setValue(QStringLiteral("paused"), m_paused);
+        settings.setValue(QStringLiteral("playbackOrder"), m_orderCombo->currentIndex());
         settings.setValue(QStringLiteral("autoAdvance"), m_autoAdvanceCheck->isChecked());
         settings.setValue(QStringLiteral("intervalUnit"), m_intervalUnit->currentIndex());
         settings.setValue(QStringLiteral("intervalAmount"), m_intervalSpin->value());
@@ -363,7 +371,12 @@ private:
         if (m_playlist.size() < 2) {
             return;
         }
-        m_currentIndex = (m_currentIndex + 1) % m_playlist.size();
+        if (m_orderCombo->currentIndex() == 1) {
+            const int offset = 1 + QRandomGenerator::global()->bounded(m_playlist.size() - 1);
+            m_currentIndex = (m_currentIndex + offset) % m_playlist.size();
+        } else {
+            m_currentIndex = (m_currentIndex + 1) % m_playlist.size();
+        }
         m_playlistWidget->setCurrentRow(m_currentIndex);
         loadPreview();
         saveSettings();
@@ -410,6 +423,7 @@ private:
             {QStringLiteral("VideoSource"), currentUrl},
             {QStringLiteral("VideoPlaylist"), playlistUrls()},
             {QStringLiteral("CurrentIndex"), m_currentIndex},
+            {QStringLiteral("PlaybackOrder"), m_orderCombo->currentIndex()},
             {QStringLiteral("AutoAdvance"), m_autoAdvanceCheck->isChecked()},
             {QStringLiteral("IntervalSeconds"), intervalSeconds()},
             {QStringLiteral("Paused"), m_paused},
@@ -426,6 +440,23 @@ private:
                                            .arg(reply.errorMessage()));
                 return;
             }
+
+            const QDBusReply<QVariantMap> activeWallpaper(shell.call(QStringLiteral("wallpaper"), screen));
+            if (!activeWallpaper.isValid()) {
+                m_statusLabel->setText(tr("Wallpaper was sent, but Plasma could not confirm its settings: %1")
+                                           .arg(activeWallpaper.error().message()));
+                return;
+            }
+
+            const QVariantMap activeSettings = activeWallpaper.value();
+            if (activeSettings.value(QStringLiteral("wallpaperPlugin")).toString() != QStringLiteral("com.custom.livewallpaper")
+                || activeSettings.value(QStringLiteral("VideoPlaylist")).toStringList() != playlistUrls()
+                || activeSettings.value(QStringLiteral("IntervalSeconds")).toInt() != intervalSeconds()
+                || activeSettings.value(QStringLiteral("AutoAdvance")).toBool() != m_autoAdvanceCheck->isChecked()
+                || activeSettings.value(QStringLiteral("PlaybackOrder")).toInt() != m_orderCombo->currentIndex()) {
+                m_statusLabel->setText(tr("Plasma is still using the old wallpaper settings schema. Log out and sign back in, then apply the playlist again."));
+                return;
+            }
         }
 
         m_player->pause();
@@ -439,6 +470,7 @@ private:
     QPushButton *m_playButton;
     QPushButton *m_pauseWallpaperButton;
     QPushButton *m_nextButton;
+    QComboBox *m_orderCombo;
     QPushButton *m_applyButton;
     QLabel *m_statusLabel;
     QListWidget *m_playlistWidget;

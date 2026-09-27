@@ -24,6 +24,10 @@
             <label>Time between videos in seconds</label>
             <default>300</default>
         </entry>
+        <entry name="PlaybackOrder" type="Int">
+            <label>Playlist order, sequential or random</label>
+            <default>0</default>
+        </entry>
         <entry name="Paused" type="Bool">
             <label>Pause wallpaper playback and automatic changes</label>
             <default>false</default>

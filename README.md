@@ -25,11 +25,13 @@ more MP4, WebM, MKV, or MOV files, select a video to preview it, set an optional
 automatic change interval in minutes or hours, and select **Apply to all
 screens**. Use **Pause wallpaper** to pause both playback and automatic changes,
 **Resume wallpaper** to continue, or **Next wallpaper** to advance immediately.
-Automatic changes continue inside Plasma after the application closes. The
+Choose **In order** or **Random** playback; each switch fades through black
+before the next video fades in. Automatic changes continue inside Plasma after the application closes. The
 library remembers file paths but does not copy video data, so imported files
 must remain at their original locations. This requires a running Plasma 6
 session and an installed wallpaper package; Plasma may need to be restarted
-once after installing a new package so it appears in the wallpaper list.
+once after installing a new package or changing its config schema so it reloads
+the available playlist and scheduler settings.
 
 The package is installed under `/usr/share/plasma/wallpapers/com.custom.livewallpaper/`.
 Its QML extension is installed under the Qt 6 QML import directory, normally
